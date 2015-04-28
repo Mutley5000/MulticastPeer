@@ -7,20 +7,23 @@ public class MulticastPeer {
 		// (e.g."228.5.6.7")
 		MulticastSocket s = null;
 		try {
-			InetAddress group = InetAddress.getByName(args[1]);
-			s = new MulticastSocket(6789);
+			InetAddress group = InetAddress.getByName(args[0]);
+			int port = Integer.parseInt(args[1]);
+			String peerID = args[2];
+			s = new MulticastSocket(port);
 			s.joinGroup(group);
-			byte[] m = args[0].getBytes();
+			BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+			String input = "Message from " + peerID + ": " + br.readLine();
+			byte[] m = input.getBytes();
 			DatagramPacket messageOut = new DatagramPacket(m, m.length, group,
-					6789);
+					port);
 			s.send(messageOut);
 			byte[] buffer = new byte[1000];
 			for (int i = 0; i < 3; i++) {// get messages from others in group
 				DatagramPacket messageIn = new DatagramPacket(buffer,
 						buffer.length);
 				s.receive(messageIn);
-				System.out.println("Received:"
-						+ new String(messageIn.getData()));
+				System.out.println(new String(messageIn.getData()));
 			}
 			s.leaveGroup(group);
 		} catch (SocketException e) {
