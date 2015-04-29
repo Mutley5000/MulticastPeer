@@ -13,19 +13,43 @@ public class MulticastPeer {
 			s = new MulticastSocket(port);
 			s.joinGroup(group);
 			BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-			String input = "Message from " + peerID + ": " + br.readLine();
-			byte[] m = input.getBytes();
-			DatagramPacket messageOut = new DatagramPacket(m, m.length, group,
-					port);
-			s.send(messageOut);
-			byte[] buffer = new byte[1000];
-			for (int i = 0; i < 3; i++) {// get messages from others in group
-				DatagramPacket messageIn = new DatagramPacket(buffer,
-						buffer.length);
-				s.receive(messageIn);
-				System.out.println(new String(messageIn.getData()));
+			boolean inGroup = true;
+			
+			while (inGroup == true) {
+				String input = br.readLine();
+				String message;
+				byte[] m;
+				DatagramPacket messageOut;
+				byte[] buffer;
+				DatagramPacket messageIn;
+				
+				
+				if (input.equals("")) {
+					message = peerID + " has left.";
+					m = message.getBytes();
+					messageOut = new DatagramPacket(m, m.length, group, port);
+					s.send(messageOut);
+					buffer = new byte[1000];
+					messageIn = new DatagramPacket(buffer, buffer.length);
+					s.receive(messageIn);
+					System.out.println(new String(messageIn.getData()));
+					
+					s.leaveGroup(group);
+					inGroup = false;
+				}
+				
+				else {
+					message = "Message from " + peerID + ": " + input;
+					m = message.getBytes();
+					messageOut = new DatagramPacket(m, m.length, group, port);
+					s.send(messageOut);
+					buffer = new byte[1000];
+					messageIn = new DatagramPacket(buffer, buffer.length);
+					s.receive(messageIn);
+					System.out.println(new String(messageIn.getData()));
+				}
 			}
-			s.leaveGroup(group);
+			
 		} catch (SocketException e) {
 			System.out.println("Socket: " + e.getMessage());
 		} catch (IOException e) {
